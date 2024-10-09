@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Review App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main h-full w-full overflow-hidden bg-slate-100">
+      <h1 class="text-center text-3xl font-bold my-4">Movie Review App</h1>
+      
+      <div class="flex justify-center mb-4">
+        <input
+          id="ratingInput"
+          type="number"
+          placeholder="Enter the minimum rating (0-5)"
+          class="bg-slate-300 py-2 text-center rounded-lg w-64 font-mono" 
+          >
+        
+      </div>
+
+      <div id="moviesContainer" class="flex flex-wrap justify-center gap-6 px-5 py-4"></div> <!-- Container for movies -->
+    </div>
+
+    <script>
+      let url = "https://feecq.github.io/api/movies.json";
+      let moviesData = [];
+
+      async function fetchData() {
+        try {
+          let response = await fetch(url);
+          if (!response.ok) {
+            throw new Error("ERROR ");
+          }
+
+          let data = await response.json();
+          moviesData = data;
+          renderMovies(data);
+        } catch (error) {
+          console.error("Error", error);
+        }
+      }
+
+      function renderMovies(data) {
+        const container = document.getElementById("moviesContainer");
+        container.innerHTML = "";
+
+        data.forEach(movie => {
+            //rating
+          let ratingOutOfFive = (movie.rating / 10) * 5;
+
+          //movie div
+          const movieDiv = document.createElement("div");
+          movieDiv.classList.add("w-[250px]", "h-[300px]", "bg-white", "shadow-lg", "rounded-lg", "overflow-hidden", "flex", "flex-col", "justify-between", "transition", "hover:scale-105");
+
+          // Anchor tag
+          const movieLink = document.createElement("a");
+          movieLink.href = movie.imdb_url;
+          movieLink.target = "_blank"; 
+
+          movieDiv.innerHTML = `
+            <div class="top h-[70%]">
+              <img src="${movie.image}" alt="${movie.movie}" class="w-full h-full object-cover" />
+            </div>
+            <div class="bottom flex flex-col justify-center items-center bg-green-300 py-2 h-[30%]">
+              <h2 class="text-sm text-center font-bold">${movie.movie}</h2>
+              <div class="flex items-center">
+                <p class="text-sm">Rating: ${ratingOutOfFive.toFixed(1)} / 5</p>
+              </div>
+            </div>
+          `;
+
+          movieLink.appendChild(movieDiv);
+          container.appendChild(movieLink);
+        });
+      }
+
+      // Filter movies by rating
+      function filterMoviesByRating(minRating) {
+        const filteredMovies = moviesData.filter(movie => (movie.rating / 10) * 5 >= minRating);
+        renderMovies(filteredMovies); // Render only the filtered movies
+      }
+
+ 
+      document.getElementById('ratingInput').addEventListener('input', function () {
+        const inputRating = parseFloat(this.value);
+        if (!isNaN(inputRating) && inputRating >= 0 && inputRating <= 5) {
+          filterMoviesByRating(inputRating);
+        } else {
+          renderMovies(moviesData);
+        }
+      });
+
+      fetchData();
+    </script>
+  </body>
+</html>
